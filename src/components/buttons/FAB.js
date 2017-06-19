@@ -1,12 +1,9 @@
-import Contextualable from '../../mixins/contextualable'
-import GenerateRouteLink from '../../mixins/route-link'
-import Schemable from '../../mixins/schemable'
-import Toggleable from '../../mixins/toggleable'
+import Button from './Button'
 
 export default {
   name: 'fab',
 
-  mixins: [Contextualable, GenerateRouteLink, Schemable, Toggleable],
+  extends: Button,
 
   data: () => ({
     changeTimeout: {},
@@ -22,11 +19,17 @@ export default {
     top: Boolean,
     right: Boolean,
     bottom: Boolean,
-    left: Boolean
+    left: Boolean,
+    floating: {
+      default: true
+    },
+    raised: {
+      default: true
+    }
   },
 
   computed: {
-    classes () {
+    fabClasses () {
       return {
         'fab': true,
         'fab--absolute': this.absolute,
@@ -48,14 +51,33 @@ export default {
         requestAnimationFrame(() => (this.isChanging = false))
       }, 600)
     },
-    genContent (h) {
-      return h('div', { 'class': 'fab__activator' }, this.$slots.default)
+    genFabContent (h) {
+      return h('div', { 'class': 'fab__activator' }, [this.genButton(h)])
+    },
+    genButton (h) {
+      const { tag, data } = this.generateRouteLink()
+      const children = []
+
+      if (tag === 'button') {
+        data.attrs.type = this.type
+      }
+
+      const icon = h('v-icon', [this.$slots.default])
+      const content = h('div', { 'class': 'fab__content' }, [icon])
+
+      children.push(content)
+
+      if (this.loading) {
+        children.push(this.genLoader(h))
+      }
+
+      return h(tag, data, children)
     }
   },
 
   render (h) {
     return h('div', {
-      'class': this.classes
-    }, [this.genContent(h)])
+      'class': this.fabClasses
+    }, [this.genFabContent(h)])
   }
 }
